@@ -12,7 +12,6 @@
   * [Activity](#customer-metrics)
 * **Additional Things**
   * [Products](#the-collision-of-products-with-ecommerce)
-  * [Videos](#soft-deletion-for-the-video-model)
 
 ## Dashboard - Home
 
@@ -107,7 +106,7 @@ ActiveCompanyUser(
 
 **Completed offers** come from the `offers_completed_count_for` method of `CreditsFlow` model, which counts the number of associated objects where `source` equivalent to `stripe` or `shopify`. Also, this method has a `period` option, which provides a period of dates for `created_at`.
 
-**Watched videos** come from the `company_videos_watched` method of `CreditsFlow` model, which counts the number of associated objects where `reference_id` grouped by `company.videos.with_deleted.map(&:id)` and has `from` and `to` options, which provides a period of dates for `created_at`.
+**Watched videos** come from the `company_videos_watched` method of `CreditsFlow` model, which counts the number of associated objects where `reference_id` grouped by `company.videos.map(&:id)` and has `from` and `to` options, which provides a period of dates for `created_at`.
 
 **The mold of** `CreditsFlow`:
 
@@ -256,18 +255,20 @@ Repeats the logic of the [this month](#1-this-month) section on the pool page, b
 
 ### 2. Daily and monthly metrics
 
-**Description:** The first three lines of this sections are about customer growth and contain signed up, invated and activation indicators during the current day or calendar month. The last line it's credit earnings from social and products activity during the same periods.
+**Description:** The first four lines of this sections are about customer growth and contain following indicators: signedup, invited, accepted invites and activations during the current day or calendar month. The last line it's credit earnings from social and products activity during the same periods.
 
 **Logic:** Uses `customers_without_owners` method of `User` model to get the number of customers, then applies the following scopes to clarify data:
 
 * **Daily metrics**
   * Signedup: `customers_today` where `source` is `'registration'`
   * Invited: `customers_today` where `source` is `'invite'`
-  * Activations: `active_today`
+  * Accepted Invites: `accepted_today` where `accepted_invite` is `true`
+  * Activations: `active_today` where `paypal_added_at` is today
 * **Monthly metrics**
   * Signedup: `customers_this_month` where `source` is `'registration'`
   * Invited: `customers_this_month` where `source` is `'invite'`
-  * Activations: `active_this_month`
+  * Accepted Invites: `accepted_this_month` where `accepted_invite` is `true`
+  * Activations: `active_this_month` where `paypal_added_at` during the current month
 
 **\*** The logic of these scopes is described in the [daily activity](#2-daily-activity) section of the home page.
 
@@ -279,18 +280,16 @@ Repeats the logic of the [this month](#1-this-month) section on the pool page, b
 
 **Logic:** These metrics go to the front side through the `Api::UserLibraryController`, which combine  the following methods:
 
-* **Offers completed** come from the `offers_completed_count_for` method of `CreditsFlow` model with `all_time` period, more details in the [completed offers](#1-this-month) section of the pool page
+* **Offers completed** come from the `offers_completed_count_for` method of `CreditsFlow` model with `all_time` period, more details in the [completed offers](#1-this-month) section of the pool page.
 
-* **Minutes watched** come from the `user_minutes_watched` method of `CreditsFlow` model, which uses `user_social`**\*** scope and returns the sum of the `amount`**\*\***
-* **Videos watched** come from the `user_videos_watched_count` method of `CreditsFlow` model, also uses scope `user_social` then grouping result by `reference_id`**\*\*** and returns a count of unique objects
+* **Minutes watched** come from the `user_minutes_watched` method of `CreditsFlow` model, which uses `user_social`**\*** scope and returns the sum of the `amount`
+* **Videos watched** come from the `user_videos_watched_count` method of `CreditsFlow` model, also uses scope `user_social` then grouping result by `reference_id` and returns a count of unique objects
 
-* **Earned this month** come from the `balance_in_credits` of `User` model, which return last `balance` of `UserBalance` model within a current pool period (`month_start` and `month_end`)**\*\*\***
+* **Earned this month** come from the `balance_in_credits` of `User` model, which return last `balance` of `UserBalance` model within a current pool period (`month_start` and `month_end`)**\*\***.
 
 **\*** `CreditsFlow` objects where `source` equivalent to `youtube`, `facebook` or `vimeo`.
 
-**\*\*** The references, in this case, is all company videos, including deleted: `company.videos.with_deleted.map(&:id)`. You can also find more info about soft deletion in [this section](#soft-deletion-for-the-video-model).
-
-**\*\*\*** To fetching current pool period, uses `period_date_start` and `period_date_end` methods of the `PoolService`.
+**\*\*** To fetching current pool period, uses `period_date_start` and `period_date_end` methods of the `PoolService`.
 
 **The mold of** `UserBalance`:
 
@@ -482,29 +481,4 @@ But over time, it was decided to leave this concept and use "Products" (the reas
 
 > For example, `Company` model has an argument `package_subscribed` where value is `'ecommerce'`, but for the front side, it means “Products” subscription.
 
-**The main thing:** any mentions about "Products" or "Product offers" of the site, on the code side will be called "ecommerce", and vice versa.
-
-### Soft deletion for the Video model
-
-**Problem:** Disconnect a social account, such as Youtube or Vimeo, will entail deleting the related `Video` objects. The result will be the loss of information about watched minutes/videos for some application metrics (you can find details in [this card](https://trello.com/c/2FDOEYo2)). In order to avoid this situation, we use the `'paranoia'` gem, which provides a soft deletion for `Video` objects.
-
-Here is some information about how it works:
-
-```ruby
-# If you want to scope all videos, including deleted:
-Video.with_deleted
-
-# If you want to scope only deleted videos:
-Video.only_deleted
-
-# If you want to restore a video:
-Video.restore(_id_)
-
-# If you want to delete a video truly:
-video.really_destroy!
-
-# If you want more information about how it works:
-# https://github.com/rubysherpas/paranoia
-```
-
-**The main thing:** when you work with metrics of social activity, you may need to take into account deleted videos through `with_deleted` scoping. For example, if it happening during the open pool period.
+**The main thing** you need to understand: any mentions about "Products" or "Product offers" of the site, on the code side will be called "ecommerce", and vice versa.
