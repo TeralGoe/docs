@@ -197,6 +197,13 @@ For the case when you need to activate a specific customer today:
 $ tm.activity.paypal(1) # 1 as user_id
 ```
 
+For the case when you need the user to accept an invitation:
+
+
+```ruby
+$ tm.activity.accept(1) # 1 as user_id
+```
+
 ### Social and Ecommerce activity
 
 For the case when each customer watched all video:
