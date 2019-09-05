@@ -21,9 +21,11 @@ This service providing "time travel" capabilities, which will allow you to open 
     │
     ├── time_machine
     │     │
-    │     ├── builder.rb        # Initialization, printers and "time travel" providing
+    │     ├── builder.rb        # Initialization and "time travel" providing
     │     ├── pool.rb           # Pool filling, rewarding and reset methods
-    │     ├── activity.rb       # Social / eCommerce activity and user creation
+    │     ├── activity.rb       # Social and eCommerce activity
+    │     ├── users.rb          # User creation and change states
+    │     ├── print.rb          # Methods for printing all available data
     │     ├── stuff.rb          # All TM objects are created here
     │     └── reply.rb          # Responsible for terminal replies and printers
     └── ...
@@ -55,26 +57,34 @@ The service has few commands to display useful information in formatted form:
 
 ```ruby
 $ tm.commands           # list of available commands
-$ tm.print_users        # company customers, which contain [id], [email], [full_name]
-$ tm.print_videos       # company videos, which contain [id], [identifier], [title]
-$ tm.print_deleted      # deleted videos, which contain [deleted_at], [identifier], [title]
-$ tm.print_companies    # available companies, which contain [id], [created_at], [subdomain]
+$ tm.print.companies    # available companies, which contain [id], [created_at], [subdomain]
+$ tm.print.users        # company customers, which contain [id], [email], [full_name]
+$ tm.print.states       # sources and activations [user_id], [source], [activated_at], [paypal]
+$ tm.print.videos       # company videos, which contain [id], [identifier], [title]
+$ tm.print.deleted      # softly deleted videos, which contain [id], [title], [deleted_at]
 ```
 Return example:
 
 ```
--------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
 
 LIST OF AVAILABLE COMPANIES:
 
-ID: 1 | 2019-03-28 10:29:19 UTC    teral 
-ID: 2 | 2019-04-15 22:40:49 UTC    nil
-ID: 3 | 2019-04-16 00:43:13 UTC    second-nil
-ID: 4 | 2019-04-18 21:08:23 UTC    social
-ID: 5 | 2019-04-20 20:51:49 UTC    demo-company
-ID: 6 | 2019-04-25 20:31:33 UTC    youtube
+ID:      | CREATED_AT:                              | SUBDOMAIN:                              
+........ | ........................................ | ........................................
+         |                                          |                                         
+1        | 2019-03-28 10:29:19 UTC                  | teral                                   
+2        | 2019-04-15 22:40:49 UTC                  | nil                                     
+3        | 2019-04-16 00:43:13 UTC                  | second-nil                              
+4        | 2019-04-18 21:08:23 UTC                  | social                                  
+5        | 2019-04-20 20:51:49 UTC                  | demo-company                            
+6        | 2019-04-25 20:31:33 UTC                  | youtube                                 
+7        | 2019-07-09 15:29:24 UTC                  | products                                
+11       | 2019-07-22 16:59:51 UTC                  | recreated                               
 
--------------------------------------------------------------------------------------
+TOTAL: 8 obj.
+
+----------------------------------------------------------------------------------------------
 ```
 
 ## Time Traveling
